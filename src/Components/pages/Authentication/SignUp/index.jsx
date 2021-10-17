@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Box } from '@mui/system'
-import { Button, TextField, Typography } from '@mui/material'
+import { Button, Typography } from '@mui/material'
 
 import InputTextField from '../InputTextField'
 
@@ -9,6 +9,8 @@ import lock from './../../../../assets/images/lock.svg'
 import mail from './../../../../assets/images/mail.svg'
 
 import { useStyle } from '../styles'
+import signup from '../../../../utils/user/signup'
+import { signUpValidator } from '../../../../utils/validations'
 
 const SignUp = ({ navigateTO }) => {
   const [userDetail, setUserDetail] = useState({
@@ -19,6 +21,7 @@ const SignUp = ({ navigateTO }) => {
   })
   const [passwordType, setPasswordType] = useState('password')
   const [confirmPasswordType, setConfirmPasswordType] = useState('password')
+  const [error, setError] = useState({})
 
   const styles = useStyle()
 
@@ -29,10 +32,32 @@ const SignUp = ({ navigateTO }) => {
     })
   }
 
+  const onSubmit = async () => {
+    const { error: validatorResponse, isValid } = signUpValidator(userDetail)
+    console.log(validatorResponse, isValid)
+    if (!isValid) {
+      setError(validatorResponse)
+    } else {
+      console.log('call')
+      if (userDetail.confirmPassword !== userDetail.password) {
+        setError({
+          ...error,
+          confirmPassword: {
+            message: "Password and confirm password does't match",
+          },
+        })
+      } else {
+        const response = await signup(userDetail)
+        console.log(response)
+      }
+    }
+  }
+
   return (
     <>
       <Box className={styles.root}>
         <Typography className={styles.label}>Sign Up</Typography>
+
         <InputTextField
           name="name"
           value={userDetail.name}
@@ -47,6 +72,7 @@ const SignUp = ({ navigateTO }) => {
           placeholder="Email"
           onChange={onChangeHandler}
           startlogo={mail}
+          error={error?.email?.message}
         />
         <InputTextField
           name="password"
@@ -57,20 +83,26 @@ const SignUp = ({ navigateTO }) => {
           startlogo={lock}
           endlogo={eyedot}
           setPassword={setPasswordType}
+          error={error?.password?.message}
         />
 
         <InputTextField
           name="confirmPassword"
           value={userDetail.confirmPassword}
           type={confirmPasswordType}
-          placeholder="password"
+          placeholder="Confirm Password"
           onChange={onChangeHandler}
           startlogo={lock}
           endlogo={eyedot}
           setPassword={setConfirmPasswordType}
+          error={error?.confirmPassword?.message}
         />
 
-        <Button className={styles.loginButton} variant="contained">
+        <Button
+          className={styles.loginButton}
+          variant="contained"
+          onClick={onSubmit}
+        >
           Sign Up
         </Button>
         <Typography className={styles.or}>Or</Typography>
