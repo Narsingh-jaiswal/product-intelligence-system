@@ -6,6 +6,7 @@ import App from "./App";
 ReactDOM.render(
   <React.StrictMode>
     <App />
+    <div id="snackbar"></div>
   </React.StrictMode>,
   document.getElementById("root")
 );

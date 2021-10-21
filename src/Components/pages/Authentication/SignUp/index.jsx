@@ -34,11 +34,9 @@ const SignUp = ({ navigateTO }) => {
 
   const onSubmit = async () => {
     const { error: validatorResponse, isValid } = signUpValidator(userDetail)
-    console.log(validatorResponse, isValid)
     if (!isValid) {
       setError(validatorResponse)
     } else {
-      console.log('call')
       if (userDetail.confirmPassword !== userDetail.password) {
         setError({
           ...error,
@@ -47,8 +45,7 @@ const SignUp = ({ navigateTO }) => {
           },
         })
       } else {
-        const response = await signup(userDetail)
-        console.log(response)
+        await signup(userDetail)
       }
     }
   }
@@ -57,7 +54,6 @@ const SignUp = ({ navigateTO }) => {
     <>
       <Box className={styles.root}>
         <Typography className={styles.label}>Sign Up</Typography>
-
         <InputTextField
           name="name"
           value={userDetail.name}
@@ -85,7 +81,6 @@ const SignUp = ({ navigateTO }) => {
           setPassword={setPasswordType}
           error={error?.password?.message}
         />
-
         <InputTextField
           name="confirmPassword"
           value={userDetail.confirmPassword}
