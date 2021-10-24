@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 
 import { makeStyles } from '@mui/styles'
 import { Box } from '@mui/system'
@@ -6,7 +6,6 @@ import { Redirect, Route } from 'react-router-dom'
 import { useHistory } from 'react-router-dom'
 
 import logo from '../../../assets/images/FullLogo.png'
-import { auth } from '../../../services/firebase/firebase'
 
 const useStyles = makeStyles({
   root: {
@@ -22,17 +21,9 @@ const useStyles = makeStyles({
   },
 })
 
-const PublicRoute = ({ component: Component, ...rest }) => {
-  const [isLogin, setIsLogin] = useState(false)
-
+const PublicRoute = ({ component: Component, isLogin, ...rest }) => {
   const styles = useStyles()
   const history = useHistory()
-
-  useEffect(() => {
-    auth.onAuthStateChanged((authUser) => {
-      return authUser?.uid ? setIsLogin(true) : setIsLogin(false)
-    })
-  }, [])
 
   const navigateTO = (link) => {
     history.push(`/${link}`)

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Button, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 
@@ -10,24 +10,14 @@ import eyedot from './../../../../assets/images/eyedot.svg'
 import lock from './../../../../assets/images/lock.svg'
 import mail from './../../../../assets/images/mail.svg'
 import { signIn } from '../../../../utils/user/signIn'
-import { getData } from '../../../../api/api'
 import { loginValidator } from '../../../../utils/validations'
+import snackbar from '../../../SnackBar'
 
 const Login = ({ navigateTO }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [passwordType, setPasswordType] = useState('password')
   const [error, setError] = useState({})
-
-  useEffect(() => {
-    getData()
-      .then((data) => {
-        console.log(data, '-------------')
-      })
-      .catch((error) => {
-        console.log(error, '--------')
-      })
-  }, [])
 
   const styles = useStyle()
 
@@ -39,9 +29,13 @@ const Login = ({ navigateTO }) => {
     if (!isValid) {
       setError(validatorResponse)
     } else {
-      await signIn({ email, password }).then((userData) => {
-        console.log(userData)
-      })
+      signIn({ email, password })
+        .then((userData) => {
+          snackbar('login successful', 'success')
+        })
+        .catch((error) => {
+          snackbar(error?.message, 'error')
+        })
     }
   }
   console.log(error)
