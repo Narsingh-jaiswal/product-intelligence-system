@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react'
 import {
   Button,
   Grid,
@@ -5,18 +6,20 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
+import SearchIcon from '@mui/icons-material/Search'
 import { makeStyles } from '@mui/styles'
 import { Box } from '@mui/system'
-import React, { useEffect, useState } from 'react'
+
 import { getData } from '../../../api/api'
 
-import SearchIcon from '@mui/icons-material/Search'
 import Loader from '../../Loader'
 import snackbar from '../../SnackBar'
 
+import { auth } from '../../../services/firebase/firebase'
+
 const useStyle = makeStyles({
   root: {
-    width: '50%',
+    width: '85%',
     margin: 'auto',
   },
   textField: {
@@ -25,6 +28,7 @@ const useStyle = makeStyles({
   },
   product: {
     justifyContent: 'space-between',
+    alignItems: 'center',
     padding: '20px 10px',
   },
   searchIcon: {
@@ -49,13 +53,16 @@ const Dashboard = () => {
     setIsLoading(true)
     getData(brandName)
       .then((data) => {
-        console.log({ data })
         if (count > 5) {
           snackbar("sorry we did't found any match", 'error')
           setIsLoading(false)
           return
         }
-        if (!data?.data?.result?.length) {
+
+        if (
+          !data?.data?.result?.[0].length &&
+          !data?.data?.result?.[1].length
+        ) {
           onSearch()
           return
         }
@@ -67,53 +74,129 @@ const Dashboard = () => {
         setIsLoading(false)
       })
   }
-  const brands = ['amazon', 'flipkart']
+  const brands = [
+    {
+      siteName: 'amazon',
+      siteLink: 'https://www.amazon.in/s?k=',
+      siteLogo:
+        'https://i2.wp.com/zeevector.com/wp-content/uploads/LOGO/Amazon-India-Logo-PNG-HD.png?fit=841%2C240&ssl=1',
+    },
+    {
+      siteName: 'flipkart',
+      siteLink: 'https://www.flipkart.com/search?q=',
+      siteLogo:
+        'https://zeevector.com/wp-content/uploads/Flipkart-Logo-Vector.png',
+    },
+  ]
 
-  // const filterProduct = (product) => {
-  //   const splited = 'iphone 11 64GB'.split()
-    
-  // }
+  const buyProduct = (link) => window.open(link)
+
+  const filterProduct = (product, index, brandIndex) => {
+    const splited = brandName.split(' ')
+    let count = 0
+
+    splited.forEach((tag) => {
+      product.Title.toLowerCase()
+        .replace(/[^a-zA-Z0-9' ']/g, '')
+        .includes(tag.toLowerCase())
+        ? count++
+        : console.log({
+            product: product.Title.toLowerCase().replace(
+              /[^a-zA-Z0-9' ']/g,
+              '',
+            ),
+            tag,
+            splited,
+          })
+    })
+
+    return (
+      splited.length == count && (
+        <Grid
+          container
+          className={styles.product}
+          key={index}
+          style={{
+            height: 88,
+            boxShadow: '0px 4px 20px rgba(88, 100, 255, 0.1)',
+            marginBottom: 20,
+          }}
+        >
+          <Grid item lg="8">
+            <Typography style={{ fontWeight: 600, fontFamily: 'Poppins' }}>
+              {product.Title}
+            </Typography>
+          </Grid>
+          <Grid item lg="2">
+            <Typography
+              style={{
+                background: '#5864FF',
+                color: 'white',
+                textAlign: 'center',
+                padding: 4,
+                borderRadius: 8,
+                cursor: 'pointer',
+              }}
+              onClick={() =>
+                buyProduct(`${brands[brandIndex].siteLink}${product.Title}`)
+              }
+            >
+              {`₹${product.price.replace('₹', '')}`}
+            </Typography>
+          </Grid>
+        </Grid>
+      )
+    )
+  }
 
   return (
     <>
       <Box className={styles.root}>
-        <TextField
-          className={styles.textField}
-          value={brandName}
-          onChange={(e) => setBrandName(e.target.value)}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment
-                className={styles.searchIcon}
-                position="start"
-                onClick={onSearch}
-              >
-                <Button color="primary">
-                  <SearchIcon />
-                </Button>
-              </InputAdornment>
-            ),
-          }}
-        />
-        {products.map((brand, index) => (
-          <>
-            <strong>
-              <p>{brands[index]}</p>
-            </strong>
-            {brand.map((product, index) => (
-              <Grid container className={styles.product} key={index}>
-                <Grid item lg="9">
-                  <Typography>{product.Title}</Typography>
-                </Grid>
-                <Grid item lg="1">
-                  <Typography display="flex">
-                    &#x20b9;{product.price}
-                  </Typography>
-                </Grid>
-              </Grid>
-            ))}
-          </>
-        ))}
+        <Box display="flex" alignItem="center">
+          <TextField
+            className={styles.textField}
+            value={brandName}
+            onChange={(e) => setBrandName(e.target.value)}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment
+                  className={styles.searchIcon}
+                  position="start"
+                  onClick={onSearch}
+                >
+                  <Button color="primary">
+                    <SearchIcon />
+                  </Button>
+                </InputAdornment>
+              ),
+            }}
+          />
+          <Button
+            style={{ width: 'fitcontent', top: '-10px', height: 'fitcontent' }}
+            // variant="outlined"
+            color="error"
+            onClick={() => {
+              auth.signOut()
+            }}
+          >
+            Logout
+          </Button>
+        </Box>
+        <Grid container display="flex" justifyContent="space-between">
+          {products.map((brand, brandIndex) => (
+            <Grid item lg="5.7" style={{ marginBottom: 20 }}>
+              <img
+                width="100%"
+                height="180"
+                src={brands[brandIndex].siteLogo}
+                alt=""
+              />
+              {brand.map((product, index) =>
+                filterProduct(product, index, brandIndex),
+              )}
+            </Grid>
+          ))}
+        </Grid>
       </Box>
       <Loader isOpen={isLoading} />
     </>
